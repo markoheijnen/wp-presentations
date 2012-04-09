@@ -1,0 +1,51 @@
+html.presentation-fullscreen-root,
+body.presentation-fullscreen-root {
+	width: 100% !important;
+	height: 100% !important;
+	overflow: hidden !important;
+}
+
+.presentation,
+.presentation-content {
+	height: 400px;
+	width: 100%;
+}
+
+.slide {
+	height: 100%;
+	width: 100%;
+}
+
+.presentation, .slide {
+	overflow: hidden;
+}
+
+.slide-content {
+	padding: 20px;
+	height: 100%;
+}
+
+.presentation-fullscreen {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	bottom: 0 !important;
+	right: 0 !important;
+	background-color: #fff;
+	z-index: 20000;
+}
+
+.presentation-fullscreen,
+.presentation-fullscreen .presentation-content {
+	height: 100% !important;
+}
+
+/* My custom CSS */
+.slide.centered h1 {
+	padding-top: 20%;
+	margin-left: 20px;
+}
+.slide code {
+	font-size: 0.8em !important;
+	background: #f9f9f9;
+}
