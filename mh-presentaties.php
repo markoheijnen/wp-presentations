@@ -25,110 +25,110 @@ include "posttypes/presentations.php";
 include "posttypes/slides.php";
 
 class MH_Presentations {
-		private $pluginURL;
+	function __construct() {
+		//init hooks
+		add_action( 'init', array( &$this, 'do_register_presentations' ) );
+		add_action( 'presentations_init', array( &$this, 'register_presentations' ) );
+		add_action( 'wp', array( &$this, 'init_frontend_functions' ), 99 );
 
-		function __construct() {
-			//init hooks
-			add_action( 'init', array( &$this, 'do_register_presentations' ) );
-			add_action( 'presentations_init', array( &$this, 'register_presentations' ) );
-			add_action( 'wp', array( &$this, 'init_frontend_functions' ), 99 );
+		// Register post types, creating meta boxes and data functions
+		new MH_Presentations_Presentations();
+		new MH_Presentations_Slides();
+	}
 
-			// Register post types, creating meta boxes and data functions
-			new MH_Presentations_Presentations();
-			new MH_Presentations_Slides();
-		}
+	function do_register_presentations() {
+		do_action( 'presentations_init' );
+	}
 
-		function do_register_presentations() {
-			do_action( 'presentations_init' );
-		}
+	function register_presentations() {
+		register_presentation( 'Presentation_Simple' );
+		register_presentation( 'Presentation_Impress' );
+		register_presentation( 'Presentation_Reveal' );
+	}
 
-		function register_presentations() {
-			register_presentation( 'Presentation_Simple' );
-			register_presentation( 'Presentation_Impress' );
-			register_presentation( 'Presentation_Reveal' );
-		}
+	function init_frontend_functions() {
+		if( is_single() && 'presentations' == get_post_type() && post_password_required() == false ) {
+			$template_object = get_current_presentation();
 
-		function init_frontend_functions() {
-			if( is_single() && 'presentations' == get_post_type() && post_password_required() == false ) {
-				$template_object = get_current_presentation();
+			if( $template_object != null ) {
+				if( $template_object->get_template() ) {
+					add_filter( 'template_include', array( &$this, 'presentation_template' ) );
+				}
+				else {
+					add_action( 'the_content', array( &$this, 'the_content' ) );
+				}
 
-				if( $template_object != null ) {
-					if( $template_object->get_template() ) {
-						add_filter( 'template_include', array( &$this, 'presentation_template' ) );
-					}
-					else {
-						add_action( 'the_content', array( &$this, 'the_content' ) );
-					}
-	
-					add_action( 'wp_enqueue_scripts', array( $template_object, 'add_scripts' ), 11 );
-					add_action( 'wp_enqueue_scripts', array( $template_object, 'add_styles' ), 11 );
-					
-					if( $template_object->disable_adminbar() == true ) {
-						show_admin_bar( false );
-						add_filter( 'show_admin_bar', '__return_false' );
-						remove_action( 'wp_head', 'wp_admin_bar_header' );
-						remove_action( 'wp_head', '_admin_bar_bump_cb' );
-					}
+				add_action( 'wp_enqueue_scripts', array( $template_object, 'add_scripts' ), 11 );
+				add_action( 'wp_enqueue_scripts', array( $template_object, 'add_styles' ), 11 );
+				
+				if( $template_object->disable_adminbar() == true ) {
+					show_admin_bar( false );
+					add_filter( 'show_admin_bar', '__return_false' );
+					remove_action( 'wp_head', 'wp_admin_bar_header' );
+					remove_action( 'wp_head', '_admin_bar_bump_cb' );
 				}
 			}
 		}
+	}
 
-		function presentation_template( $path ) {
-			global $template_object;
+	function presentation_template( $path ) {
+		global $template_object;
 
-			$template_object = get_current_presentation();
-			$path = $template_object->get_template();
+		$template_object = get_current_presentation();
+		$path = $template_object->get_template();
 
-			return $path;
+		return $path;
+	}
+
+	function the_content($content) {
+		global $post;
+
+		if(
+			get_post_type( $post ) == "presentations"
+			AND ! locate_template( array( 'single-presentations.php' ), true )
+			AND function_exists( '_p2p_load' )
+		) {
+			return $this->show_presentation( $post );
+		}
+		return $content;
+	}
+
+	public function show_presentation( $post ) {
+		$template_object  = get_current_presentation();
+		$presentationInfo = get_post_meta( $post->ID , '_mhPresentationInfo', true );
+
+		if( ! empty($presentationInfo['css'] ) ) {
+			echo '<style type="text/css">';
+			echo $presentationInfo['css'];
+			echo '</style>';
 		}
 
-		function the_content($content) {
-			global $post;
+		$out = $post->post_content;
 
-			if( get_post_type( $post ) == "presentations" AND ! locate_template( array( 'single-presentations.php' ), true ) ) {
-				return $this->show_presentation( $post );
-			}
-			return $content;
-		}
+		if( is_single() ) {
+			$out.= '<div id="presentation-' . $post->ID . '" class="presentation">';
+			$out.= '<div class="presentation-content">';
 
-		public function show_presentation( $post ) {
-			$template_object = get_current_presentation();
-			$presentationInfo = get_post_meta( $post->ID , '_mhPresentationInfo', true );
+			$connected = new WP_Query( array(
+				'connected_type' => 'presentation_to_slide',
+				'connected_items' => get_queried_object_id(),
+				'nopaging' => true,
+			) );
 
-			if( ! empty($presentationInfo['css'] ) ) {
-				echo '<style type="text/css">';
-				echo $presentationInfo['css'];
-				echo '</style>';
-			}
+			if ( $connected->have_posts() ) {
+				while ( $connected->have_posts() ) {
+					$connected->the_post();
 
-			$out = $post->post_content;
-
-			if( is_single() ) {
-				$out.= '<div id="presentation-' . $post->ID . '" class="presentation">';
-				$out.= '<div class="presentation-content">';
-
-				$connected = new WP_Query( array(
-					'connected_type' => 'presentation_to_slide',
-					'connected_items' => get_queried_object_id(),
-					'nopaging' => true,
-				) );
-
-				if ( $connected->have_posts() ) {
-					while ( $connected->have_posts() ) {
-						$connected->the_post();
-
-						$out.= $template_object->show_slide( $connected->post );
-					}
+					$out.= $template_object->show_slide( $connected->post );
 				}
-				wp_reset_postdata();
-
-				$out.= '</div></div>';
 			}
+			wp_reset_postdata();
 
-			return $out;
+			$out.= '</div></div>';
 		}
+
+		return $out;
+	}
 }
 
 new MH_Presentations;
-
-?>
