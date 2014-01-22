@@ -63,11 +63,14 @@ class Abstract_Presentation {
 		global $post;
 
 		$default_meta = (array) get_post_meta( $post->ID, $this->option_name, true );
-		$p2p_meta = p2p_get_meta( $post->p2p_id, null, true );
 
-		foreach( $p2p_meta as $field_name => $field_data ) {
-			if( isset( $field_data[0] ) && ( !empty( $field_data[0] ) || $field_data[0] == 0 ) ) {
-				$default_meta[ $field_name ] = $field_data[0];
+		if( function_exists('p2p_get_meta') ) {
+			$p2p_meta = p2p_get_meta( $post->p2p_id, null, true );
+
+			foreach( $p2p_meta as $field_name => $field_data ) {
+				if( isset( $field_data[0] ) && ( !empty( $field_data[0] ) || $field_data[0] == 0 ) ) {
+					$default_meta[ $field_name ] = $field_data[0];
+				}
 			}
 		}
 		
