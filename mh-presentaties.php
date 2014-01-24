@@ -8,7 +8,7 @@ Plugin Name: MH Presentaties
 Plugin URI: http://presentaties.markoheijnen.com
 Description: Tool om presentaties bij te houden.
 Author: Marko Heijnen
-Version: 1.0
+Version: 1.1-dev
 Author URI: http://markoheijnen.com
 
 Depends: posts-to-posts
@@ -25,11 +25,12 @@ include "posttypes/presentations.php";
 include "posttypes/slides.php";
 
 class MH_Presentations {
+
 	function __construct() {
 		//init hooks
-		add_action( 'init', array( &$this, 'do_register_presentations' ) );
-		add_action( 'presentations_init', array( &$this, 'register_presentations' ) );
-		add_action( 'wp', array( &$this, 'init_frontend_functions' ), 99 );
+		add_action( 'init', array( $this, 'do_register_presentations' ) );
+		add_action( 'presentations_init', array( $this, 'register_presentations' ) );
+		add_action( 'wp', array( $this, 'init_frontend_functions' ), 99 );
 
 		// Register post types, creating meta boxes and data functions
 		new MH_Presentations_Presentations();
@@ -52,10 +53,10 @@ class MH_Presentations {
 
 			if( $template_object != null ) {
 				if( $template_object->get_template() ) {
-					add_filter( 'template_include', array( &$this, 'presentation_template' ) );
+					add_filter( 'template_include', array( $this, 'presentation_template' ) );
 				}
 				else {
-					add_action( 'the_content', array( &$this, 'the_content' ) );
+					add_action( 'the_content', array( $this, 'the_content' ) );
 				}
 
 				add_action( 'wp_enqueue_scripts', array( $template_object, 'add_scripts' ), 11 );

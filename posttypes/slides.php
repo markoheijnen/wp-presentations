@@ -1,20 +1,21 @@
 <?php
 
 class MH_Presentations_Slides {
+
 	function __construct() {
 		//init variables
 		$this->pluginURL = plugins_url( '/', dirname( __FILE__ ) );
 
 		//init hooks
-		add_action( 'init', array( &$this, 'create_posttype' ) );
+		add_action( 'init', array( $this, 'create_posttype' ) );
 
 		//add filter to insure the text of custom post types will displayed correctly when user updates
-		add_filter( 'post_updated_messages', array( &$this, 'updated_messages' ) );
+		add_filter( 'post_updated_messages', array( $this, 'updated_messages' ) );
 
-		add_action( 'add_meta_boxes', array( &$this, 'add_meta_box' ) );
-		add_action( 'save_post', array( &$this, 'save_meta_box' ) );
+		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
+		add_action( 'save_post', array( $this, 'save_meta_box' ) );
 
-		add_shortcode( 'slide', array( &$this, 'shortcode_slide' ) );
+		add_shortcode( 'slide', array( $this, 'shortcode_slide' ) );
 	}
 
 	public function create_posttype() {
@@ -77,7 +78,7 @@ class MH_Presentations_Slides {
 		add_meta_box(
 			'slide_children',
 			__( 'Children', 'mh-presentaties' ),
-			array( &$this, 'metabox_children' ),
+			array( $this, 'metabox_children' ),
 			'slides',
 			'side',
 			'core'
